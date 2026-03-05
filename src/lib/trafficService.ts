@@ -832,8 +832,22 @@ export const trafficService = {
         }
       }
       if (hasSupabase) {
-        // Server-side check disabled to prevent network errors
-        return { allowed: true, country: ipData.country_name };
+        try {
+          const { data: edgeData, error: edgeError } = await supabase!.functions.invoke('admin-api', {
+            body: { 
+              action: 'security:checkAccess', 
+              ip: ipData.ip,
+              country: ipData.country_name,
+              risk_score: ipData.risk_score,
+              risk_factors: ipData.risk_factors
+            }
+          });
+          if (!edgeError && edgeData) {
+            return edgeData;
+          }
+        } catch (e) {
+          console.error('Edge function check failed', e);
+        }
       }
       return { allowed: true, country: ipData.country_name };
     } catch (err) {
