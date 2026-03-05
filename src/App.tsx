@@ -362,6 +362,7 @@ function App() {
               <Route path="/terms" element={<PublicLayout><TermsOfServicePage /></PublicLayout>} />
               <Route path="/refund" element={<PublicLayout><RefundPolicyPage /></PublicLayout>} />
               <Route path="/shop" element={<PublicLayout><ShopPage /></PublicLayout>} />
+              <Route path="/products" element={<Navigate to="/#products" replace />} />
               <Route path="/features" element={<PublicLayout><FeaturesPage /></PublicLayout>} />
               <Route path="/contact" element={<PublicLayout><ContactPage /></PublicLayout>} />
               <Route path="/select-language/:productId" element={<PublicLayout><LanguageSelectionPage /></PublicLayout>} />

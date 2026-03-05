@@ -52,7 +52,7 @@
       style-src 'self' 'unsafe-inline';
       font-src 'self' https: data:;
       script-src 'self' 'unsafe-inline';
-      connect-src 'self' https://*.supabase.co wss://*.supabase.co https://ipwho.is https://ipapi.co https://freeipapi.com https://ipwhois.app;
+      connect-src 'self' https://*.supabase.co wss://*.supabase.co;
       frame-ancestors 'none';
       upgrade-insecure-requests;
     """

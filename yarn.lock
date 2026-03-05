@@ -274,6 +274,11 @@
     "@eslint/core" "^0.17.0"
     levn "^0.4.1"
 
+"@fingerprintjs/fingerprintjs@^5.1.0":
+  version "5.1.0"
+  resolved "https://registry.npmjs.org/@fingerprintjs/fingerprintjs/-/fingerprintjs-5.1.0.tgz"
+  integrity sha512-8h/CscV3xQ4KSLyXbSK8YFpZ5AaezzHfkl82mn8NJIEWNi1zLfbZSIu7MGGtx4pqa10oejhEk4u0MNutuE63Fw==
+
 "@floating-ui/core@^1.7.3":
   version "1.7.3"
   resolved "https://registry.npmjs.org/@floating-ui/core/-/core-1.7.3.tgz"
