@@ -1,0 +1,171 @@
+import React, { useEffect, useRef, useState } from 'react';
+
+interface Point {
+  x: number;
+  y: number;
+  age: number;
+}
+
+const MagicCursor = () => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const cursorShapeRef = useRef<HTMLDivElement>(null);
+  const points = useRef<Point[]>([]);
+  const mousePos = useRef({ x: 0, y: 0 });
+  const lastAddTime = useRef(0);
+  const [isPointer, setIsPointer] = useState(false);
+  const [isClicking, setIsClicking] = useState(false);
+  
+  // إعدادات قابلة للتخصيص
+  const config = {
+    trailColorStart: '#00e5ff',
+    trailColorEnd: '#0088ff',
+    lineWidth: 2.5,
+    maxAge: 28,
+    maxPoints: 42
+  };
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let animationFrameId: number;
+
+    const handleResize = () => {
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = window.innerWidth * dpr;
+      canvas.height = window.innerHeight * dpr;
+      canvas.style.width = `${window.innerWidth}px`;
+      canvas.style.height = `${window.innerHeight}px`;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      mousePos.current = { x: e.clientX, y: e.clientY };
+      
+      // تحديث موقع شكل المؤشر المخصص
+      if (cursorShapeRef.current) {
+        cursorShapeRef.current.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0)`;
+      }
+
+      // إضافة نقطة للأثر (تبدأ من نهاية المؤشر وليس رأسه)
+      const now = performance.now();
+      if (now - lastAddTime.current > 16) {
+        lastAddTime.current = now;
+        const offset = isPointer ? 12 : 10;
+        points.current.push({ x: e.clientX + offset, y: e.clientY + offset, age: 0 });
+        if (points.current.length > config.maxPoints) points.current.shift();
+      }
+
+      // التحقق من نوع المؤشر (Hover)
+      const target = e.target as HTMLElement;
+      const isClickable = 
+        target.tagName === 'A' || 
+        target.tagName === 'BUTTON' || 
+        target.closest('a') !== null || 
+        target.closest('button') !== null ||
+        target.getAttribute('role') === 'button';
+      setIsPointer(isClickable);
+    };
+
+    const handleMouseDown = () => setIsClicking(true);
+    const handleMouseUp = () => setIsClicking(false);
+
+    const animate = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (points.current.length > 1) {
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        for (let i = 0; i < points.current.length - 1; i++) {
+          const p1 = points.current[i];
+          const p2 = points.current[i + 1];
+          
+          p1.age++;
+          const opacity = 1 - p1.age / config.maxAge;
+          
+          if (opacity > 0) {
+            ctx.globalAlpha = opacity;
+            ctx.strokeStyle = config.trailColorStart;
+            ctx.lineWidth = config.lineWidth * opacity;
+
+            ctx.beginPath();
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.stroke();
+          }
+        }
+        points.current = points.current.filter(p => p.age < config.maxAge);
+        ctx.globalAlpha = 1;
+      }
+
+      animationFrameId = requestAnimationFrame(animate);
+    };
+
+    window.addEventListener('resize', handleResize, { passive: true });
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
+    window.addEventListener('mousedown', handleMouseDown, { passive: true });
+    window.addEventListener('mouseup', handleMouseUp, { passive: true });
+    
+    handleResize();
+    animate();
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mousedown', handleMouseDown);
+      window.removeEventListener('mouseup', handleMouseUp);
+      cancelAnimationFrame(animationFrameId);
+    };
+  }, []);
+
+  return (
+    <>
+      {/* 1. الأثر السحري (Canvas Trail) */}
+      <canvas
+        ref={canvasRef}
+        className="fixed top-0 left-0 pointer-events-none z-[9998] mix-blend-screen"
+      />
+
+      {/* 2. شكل المؤشر الطبيعي (Simple Triangle) */}
+      <div
+        ref={cursorShapeRef}
+        className="fixed top-0 left-0 pointer-events-none z-[9999] flex items-center justify-center mix-blend-difference"
+        style={{ marginTop: '0px', marginLeft: '0px', imageRendering: 'crisp-edges', willChange: 'transform' }}
+      >
+        <div className={`
+          relative transition-all duration-300 ease-out
+          ${isPointer ? 'scale-125' : 'scale-100'}
+          ${isClicking ? 'scale-75' : ''}
+        `}>
+          {/* رأس المثلث (Cursor Tip) */}
+          <svg 
+            width="20" 
+            height="20" 
+            viewBox="0 0 20 20" 
+            fill="none" 
+            xmlns="http://www.w3.org/2000/svg"
+            style={{ transform: 'translate(-1px, -1px) rotate(6deg)', filter: 'drop-shadow(0 0 1px rgba(255,255,255,0.5))' }}
+          >
+            <path 
+              d="M2 2L8 18L11 11L18 8L2 2Z" 
+              fill="white" 
+              stroke="white" 
+              strokeWidth="1.2" 
+              strokeLinejoin="miter"
+            />
+          </svg>
+
+          {/* تأثير توهج خفيف جداً خلف المثلث */}
+          {isPointer && (
+            <div className="absolute inset-0 bg-cyan-400/20 blur-md rounded-full -z-10 animate-pulse"></div>
+          )}
+        </div>
+      </div>
+    </>
+  );
+};
+
+export default MagicCursor;

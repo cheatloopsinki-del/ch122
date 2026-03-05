@@ -1,0 +1,58 @@
+ [build]
+   command = "npm run build"
+   publish = "dist"
+ 
+[functions]
+  directory = "netlify/functions"
+
+ [build.environment]
+   NODE_VERSION = "20"
+ 
+[[redirects]]
+  from = "/sitemap.xml"
+  to = "/sitemap.xml"
+  status = 200
+
+[[redirects]]
+  from = "/robots.txt"
+  to = "/robots.txt"
+  status = 200
+
+[[redirects]]
+  from = "/googlefd8025cc6618c8b3.html"
+  to = "/googlefd8025cc6618c8b3.html"
+  status = 200
+
+ [[redirects]]
+   from = "/*"
+   to = "/index.html"
+   status = 200
+
+[[redirects]]
+  from = "/api/moneymotion/webhook"
+  to = "/.netlify/functions/mm-webhook"
+  status = 200
+
+[[redirects]]
+  from = "/api/webhooks/moneymotion"
+  to = "/.netlify/functions/mm-webhook"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), usb=(), payment=()"
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
+    Content-Security-Policy = """
+      default-src 'self';
+      img-src 'self' https: data:;
+      style-src 'self' 'unsafe-inline';
+      font-src 'self' https: data:;
+      script-src 'self' 'unsafe-inline';
+      connect-src 'self' https://*.supabase.co wss://*.supabase.co https://ipwho.is https://ipapi.co https://freeipapi.com https://ipwhois.app;
+      frame-ancestors 'none';
+      upgrade-insecure-requests;
+    """
