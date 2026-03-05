@@ -475,6 +475,7 @@ export const trafficService = {
                 'pia',
                 'private internet access',
                 'hidemyass',
+                'browsec',
                 'vpn'
             ];
             const isSuspiciousISP = suspiciousISPs.some(s => isp.includes(s));
@@ -695,6 +696,7 @@ export const trafficService = {
       const ipMsgEnv = String(env?.VITE_IP_BAN_MESSAGE ?? '');
       const advMsgEnv = String(env?.VITE_ADVANCED_BAN_MESSAGE ?? '');
       const envAutoBanOnVpn = String(env?.VITE_AUTO_BAN_ON_VPN ?? 'false') === 'true';
+      const envForceBlockOnGeoFailure = String(env?.VITE_FORCE_BLOCK_ON_GEO_FAILURE ?? 'false') === 'true';
       if (disable) {
         try {
           localStorage.setItem(cacheKey, JSON.stringify({ reason: 'disabled', setAt: Date.now(), expiresAt: Date.now() + 10 * 60 * 1000 }));
@@ -793,6 +795,14 @@ export const trafficService = {
             blocked = true;
             blockedReason = 'country_banned_env';
             message = geoMsg || message;
+          }
+        }
+        if (!blocked) {
+          const geoFailed = (!ipData.country_name || ipData.country_name === 'Unknown') && (!ipData.city || ipData.city === 'Unknown');
+          if (envForceBlockOnGeoFailure && geoFailed && (envBlockVpn || envBlockStrictVpn)) {
+            blocked = true;
+            blockedReason = 'geo_failure_strict';
+            message = vpnMsg || message;
           }
         }
         if (!blocked) {
